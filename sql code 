@@ -1,0 +1,401 @@
+CREATE SCHEMA Uni_management;
+
+
+USE Uni_management;
+
+
+CREATE TABLE departments (
+department_id   INT AUTO_INCREMENT PRIMARY KEY,
+department_name VARCHAR(100) NOT NULL UNIQUE,
+building VARCHAR(50),
+established_year INT CHECK (established_year >= 1800 AND established_year <= 2100)
+     
+);
+
+
+
+CREATE TABLE instructors (
+instructor_id INT AUTO_INCREMENT PRIMARY KEY,
+first_name VARCHAR(50) NOT NULL,
+last_name VARCHAR(50) NOT NULL,
+email VARCHAR(100) NOT NULL UNIQUE,
+hire_date DATE NOT NULL,
+salary DECIMAL(10,2) CHECK (salary >= 0),    
+department_id INT  NOT NULL,
+FOREIGN KEY (department_id) REFERENCES departments(department_id)
+ON DELETE RESTRICT
+ON UPDATE CASCADE
+  
+);
+
+
+
+CREATE TABLE students (
+student_id INT AUTO_INCREMENT PRIMARY KEY,
+first_name VARCHAR(50) NOT NULL,
+last_name VARCHAR(50) NOT NULL,
+email VARCHAR(100) NOT NULL UNIQUE,
+date_of_birth DATE NOT NULL,
+enrollment_date DATE NOT NULL DEFAULT (CURRENT_DATE),
+gender ENUM('Male', 'Female', 'Other'),
+gpa DECIMAL(3,2) DEFAULT 0.00, 
+department_id INT,
+FOREIGN KEY (department_id) REFERENCES departments(department_id)
+ON DELETE SET NULL
+ON UPDATE CASCADE
+);
+
+
+
+
+CREATE TABLE courses (
+course_id INT AUTO_INCREMENT PRIMARY KEY,
+course_code VARCHAR(20) NOT NULL UNIQUE,
+course_name VARCHAR(150) NOT NULL,
+credits INT NOT NULL CHECK (credits BETWEEN 1 AND 6),
+max_capacity INT NOT NULL DEFAULT 30,
+description TEXT,
+department_id INT NOT NULL,
+instructor_id INT,
+
+FOREIGN KEY (department_id) REFERENCES departments(department_id)
+ON DELETE RESTRICT ON UPDATE CASCADE,
+FOREIGN KEY (instructor_id) REFERENCES instructors(instructor_id)
+ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+
+
+CREATE TABLE enrollments (
+enrollment_id INT AUTO_INCREMENT PRIMARY KEY,
+student_id INT NOT NULL,
+course_id INT NOT NULL,
+enrollment_date DATE NOT NULL DEFAULT (CURRENT_DATE),
+status ENUM('Active', 'Completed', 'Dropped', 'Waitlisted') NOT NULL DEFAULT 'Active',
+FOREIGN KEY (student_id) REFERENCES students(student_id)
+ON DELETE CASCADE ON UPDATE CASCADE,
+FOREIGN KEY (course_id) REFERENCES courses(course_id)
+ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+
+
+CREATE TABLE grades (
+grade_id INT AUTO_INCREMENT PRIMARY KEY,
+enrollment_id INT NOT NULL UNIQUE,
+letter_grade ENUM('A+','A','A-','B+','B','B-','C+','C','C-','D','F') NOT NULL,
+numeric_grade DECIMAL(5,2) NOT NULL CHECK (numeric_grade BETWEEN 0.00 AND 100.00),
+graded_date DATE NOT NULL DEFAULT (CURRENT_DATE),
+remarks VARCHAR(255),
+FOREIGN KEY (enrollment_id) REFERENCES enrollments(enrollment_id)
+ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+
+
+INSERT INTO departments (department_name, building, established_year)
+VALUES
+('Computer Science', 'Tech Hall A',     1985),
+('Mathematics', 'Science Block B', 1960),
+('Business Administration', 'Commerce Wing',   1972),
+('Data Science', 'Tech Hall B',     2010),
+('Engineering', 'Engineering Hub', 1955);
+
+
+
+INSERT INTO instructors (first_name, last_name, email, hire_date, salary, department_id) 
+VALUES
+('Ahmed', 'Hassan', 'a.hassan@university.edu', '2015-09-01', 75000.00, 1),
+('Fatima', 'Al-Rashid', 'f.alrashid@university.edu', '2012-03-15', 82000.00, 1),
+('Jonas', 'Müller', 'j.muller@university.edu', '2018-07-01', 68000.00, 2),
+('Sophie',  'Bernard', 's.bernard@university.edu', '2010-01-10', 91000.00, 3),
+('Yuki', 'Tanaka', 'y.tanaka@university.edu', '2020-09-01', 72000.00, 4),
+('Carlos', 'Rivera', 'c.rivera@university.edu', '2016-04-20', 79000.00, 5),
+('Amara', 'Diallo', 'a.diallo@university.edu', '2019-08-15', 66000.00, 2),
+('Elena', 'Popescu', 'e.popescu@university.edu', '2011-02-28', 88000.00, 3);
+
+
+INSERT INTO students (first_name, last_name, email, date_of_birth, enrollment_date, gender, gpa, department_id) 
+VALUES
+('Liam', 'Johnson', 'liam.j@student.edu', '2002-03-15', '2021-09-01', 'Male', 3.75, 1),
+('Aisha', 'Mohammed', 'aisha.m@student.edu', '2001-11-22', '2021-09-01', 'Female', 3.90, 1),
+('Lucas', 'Weber', 'lucas.w@student.edu', '2003-06-08', '2022-09-01', 'Male', 2.80, 2),
+('Priya', 'Sharma', 'priya.s@student.edu', '2002-08-30', '2021-09-01', 'Female', 3.60, 4),
+('Omar', 'Abdullah', 'omar.a@student.edu', '2001-05-17', '2020-09-01', 'Male', 3.20, 3),
+('Sofia', 'Garcia', 'sofia.g@student.edu', '2003-12-01', '2022-09-01', 'Female', 3.85, 1),
+('Kwame', 'Asante', 'kwame.a@student.edu', '2002-02-14', '2021-09-01', 'Male', 2.95, 5),
+('Mei', 'Zhang', 'mei.z@student.edu', '2001-09-25', '2020-09-01', 'Female', 3.70, 4),
+('Raphael', 'Santos', 'raphael.s@student.edu', '2003-04-11', '2022-09-01', 'Male', 3.10, 3),
+('Nina', 'Kowalski',  'nina.k@student.edu', '2002-07-19', '2021-09-01', 'Female', 3.55, 2),
+('Ibrahim', 'Al-Farsi', 'ibrahim.af@student.edu', '2001-01-30', '2020-09-01', 'Male', 3.40, 1),
+('Chiara',  'Romano', 'chiara.r@student.edu', '2003-10-05', '2022-09-01', 'Female', 2.70, 4);
+
+
+
+INSERT INTO courses (course_code, course_name, credits, max_capacity, description, department_id, instructor_id) 
+VALUES
+('CS101', 'Introduction to Programming', 3, 40, 'Fundamentals of programming using Python.', 1, 1),
+('CS201', 'Data Structures & Algorithms', 4, 35, 'Core data structures: arrays, trees, graphs.', 1, 2),
+('CS301', 'Database Systems', 3, 30, 'Relational databases, SQL, and data modelling.', 1, 1),
+('MATH101', 'Calculus I', 4, 50, 'Differential calculus and limits.', 2, 3),
+('MATH201', 'Linear Algebra', 3, 40, 'Vectors, matrices, and linear transformations.', 2, 7),
+('BUS101', 'Principles of Management', 3, 60, 'Foundational management theories and practices.', 3, 4),
+('BUS201', 'Financial Accounting', 4, 50, 'Accounting principles for business decisions.', 3, 8),
+('DS101', 'Introduction to Data Science', 3, 35, 'Data wrangling, visualisation, and basic ML.', 4, 5),
+('DS201', 'Machine Learning Fundamentals', 4, 30, 'Supervised and unsupervised learning algorithms.', 4, 5),
+('ENG101', 'Engineering Mathematics', 4, 45, 'Mathematical tools for engineering problems.', 5, 6),
+('CS401', 'Software Engineering', 3, 30, 'Software development lifecycle, Agile, testing.', 1, 2),
+('DS301', 'Big Data Technologies', 3, 25, 'Hadoop, Spark, and distributed data processing.', 4, 5);
+
+
+
+INSERT INTO enrollments (student_id, course_id, enrollment_date, status)
+VALUES
+
+(1, 1, '2021-09-01', 'Completed'),
+(1, 2, '2022-01-15', 'Completed'),
+(1, 3, '2022-09-01', 'Active'),
+(2, 1, '2021-09-01', 'Completed'),
+(2, 2, '2022-01-15', 'Completed'),
+(2, 8, '2022-09-01', 'Active'),
+(2, 9, '2023-01-15', 'Active'),
+(3, 4, '2022-09-01', 'Completed'),
+(3, 5, '2023-01-15', 'Active'),
+(4, 8, '2021-09-01', 'Completed'),
+(4, 9, '2022-01-15', 'Completed'),
+(4, 12, '2022-09-01', 'Active'),
+(5, 6, '2020-09-01', 'Completed'),
+(5, 7, '2021-01-15', 'Completed'),
+(6, 1, '2022-09-01', 'Completed'),
+(6, 2, '2023-01-15', 'Active'),
+(6, 3, '2023-09-01', 'Active'),
+(7, 10, '2021-09-01', 'Completed'),
+(7, 4, '2022-01-15', 'Completed'),
+(8, 8, '2020-09-01', 'Completed'),
+(8, 9, '2021-01-15', 'Completed'),
+(8, 12, '2022-09-01', 'Active'),
+(9, 6, '2022-09-01', 'Completed'),
+(9, 7, '2023-01-15', 'Active'),
+(10, 4, '2021-09-01', 'Completed'),
+(10, 5, '2022-01-15', 'Active'),
+(11, 1, '2020-09-01', 'Completed'),
+(11, 3, '2021-09-01', 'Completed'),
+(11, 11, '2022-09-01', 'Active'),
+(12, 8, '2022-09-01', 'Completed'),
+(12, 9, '2023-01-15', 'Active');
+
+
+
+INSERT INTO grades (enrollment_id, letter_grade, numeric_grade, graded_date) 
+VALUES
+(1, 'A', 92.50, '2022-01-14'),
+(2, 'A-', 88.00, '2022-06-30'),
+(4, 'A+', 97.00, '2022-01-14'),
+(5, 'A', 93.50, '2022-06-30'),
+(8, 'B+', 82.00, '2023-01-14'),
+(10, 'A', 91.00, '2022-01-14'),
+(11, 'A-', 87.50, '2022-06-30'),
+(13, 'B', 78.00, '2021-01-14'),
+(14, 'B+', 83.00, '2021-06-30'),
+(16, 'A', 90.00, '2023-01-14'),
+(19, 'C+', 72.00, '2022-01-14'),
+(20, 'B', 77.50, '2022-06-30'),
+(22, 'A-', 88.00, '2021-01-14'),
+(23, 'A', 91.50, '2021-06-30'),
+(25, 'B-', 74.00, '2023-01-14'),
+(27, 'B+', 81.00, '2022-01-14'),
+(29, 'A-', 87.00, '2021-01-14'),
+(30, 'A', 92.00, '2022-01-14'),
+(31, 'B', 76.50, '2023-01-14');
+
+
+
+SELECT * FROM departments;
+
+
+#List all students with their department name
+#INNER JOIN: only shows rows that have a match in BOTH tables.
+#i.e only students who have a department_id (not NULL).
+
+SELECT  s.student_id, CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+s.email, s.gpa, d.department_name
+FROM students s
+INNER JOIN departments d ON s.department_id = d.department_id
+ORDER BY s.last_name;
+
+
+#List all courses with their instructor and department
+SELECT c.course_code, c.course_name, c.credits,
+CONCAT(i.first_name, ' ', i.last_name) AS instructor_name,
+d.department_name
+FROM courses c
+JOIN instructors i ON c.instructor_id = i.instructor_id
+JOIN departments d ON c.department_id = d.department_id
+ORDER BY d.department_name, c.course_code;
+
+
+#Show all enrollments with student and course details
+SELECT e.enrollment_id, CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+c.course_code, c.course_name, e.enrollment_date, e.status
+FROM enrollments e
+JOIN students s ON e.student_id = s.student_id
+JOIN courses  c ON e.course_id  = c.course_id
+ORDER BY e.enrollment_date;
+
+
+#Show grade report: student, course, letter grade, numeric grade
+SELECT CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+c.course_code, c.course_name, g.letter_grade, g.numeric_grade
+FROM grades g
+JOIN enrollments e ON g.enrollment_id = e.enrollment_id
+JOIN students s ON e.student_id = s.student_id
+JOIN courses c ON e.course_id = c.course_id
+ORDER BY s.last_name, c.course_code;
+
+
+
+
+#Find all Computer Science students
+SELECT CONCAT(s.first_name, ' ', s.last_name) AS student_name, s.email, s.gpa
+FROM students s
+JOIN departments d ON s.department_id = d.department_id
+WHERE d.department_name = 'Computer Science'
+ORDER BY s.gpa DESC;
+
+
+
+#Find courses worth 4 or more credits
+SELECT course_code, course_name, credits, max_capacity
+FROM courses
+WHERE credits >= 4
+ORDER BY credits DESC, course_name;
+
+
+#Find students with GPA above 3.5 
+SELECT CONCAT(first_name, ' ', last_name) AS student_name,
+email, gpa
+FROM students
+WHERE gpa >= 3.50
+ORDER BY gpa DESC;
+
+
+#Find all active enrollments
+SELECT CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+c.course_name, e.enrollment_date
+FROM enrollments e
+JOIN students s ON e.student_id = s.student_id
+JOIN courses  c ON e.course_id  = c.course_id
+WHERE e.status = 'Active'
+ORDER BY s.last_name;
+
+
+
+
+#Count students per department
+#COUNT(*) counts ALL rows in each group.
+SELECT d.department_name, COUNT(s.student_id) AS total_students
+FROM departments d
+LEFT JOIN students s ON s.department_id = d.department_id
+#LEFT JOIN: shows ALL departments even if they have 0 students.
+#With INNER JOIN, departments with 0 students would be hidden.
+GROUP BY d.department_id, d.department_name
+ORDER BY total_students DESC;
+
+
+#Average GPA by department
+SELECT d.department_name, ROUND(AVG(s.gpa), 2) AS average_gpa,
+#ROUND(value, 2) rounds to 2 decimal places.
+COUNT(s.student_id) AS student_count
+FROM departments d
+JOIN students s ON s.department_id = d.department_id
+GROUP BY d.department_id, d.department_name
+HAVING COUNT(s.student_id) > 0
+#HAVING filters AFTER grouping (WHERE filters BEFORE grouping).
+ORDER BY average_gpa DESC;
+
+
+
+#Average grade per course (for completed courses)
+SELECT c.course_code, c.course_name,
+COUNT(g.grade_id) AS graded_students,
+ROUND(AVG(g.numeric_grade), 2) AS avg_grade,
+MAX(g.numeric_grade) AS highest_grade,
+MIN(g.numeric_grade) AS lowest_grade
+FROM courses c
+JOIN enrollments e ON e.course_id  = c.course_id
+JOIN grades g ON g.enrollment_id = e.enrollment_id
+GROUP BY c.course_id, c.course_code, c.course_name
+ORDER BY avg_grade DESC;
+
+
+#Instructor workload: how many courses each teaches
+SELECT CONCAT(i.first_name, ' ', i.last_name) AS instructor_name, d.department_name,
+COUNT(c.course_id) AS courses_taught,
+SUM(c.credits) AS total_credit_hours
+FROM instructors i
+JOIN departments d ON i.department_id = d.department_id
+LEFT JOIN courses c ON c.instructor_id = i.instructor_id
+GROUP BY i.instructor_id, instructor_name, d.department_name
+ORDER BY courses_taught DESC;
+
+
+#Total payroll by department
+SELECT
+d.department_name,
+COUNT(i.instructor_id) AS num_instructors,
+SUM(i.salary) AS total_payroll,
+ROUND(AVG(i.salary), 2) AS avg_salary
+FROM departments d
+JOIN instructors i ON i.department_id = d.department_id
+GROUP BY d.department_id, d.department_name
+ORDER BY total_payroll DESC;
+
+
+
+
+#UPDATE: A student changes their major to Data Science
+
+UPDATE students
+SET department_id = (SELECT department_id FROM departments WHERE department_name = 'Data Science')
+WHERE email = 'lucas.w@student.edu';
+
+#Verify the update:
+SELECT first_name, last_name, department_id FROM students WHERE email = 'lucas.w@student.edu';
+
+
+#UPDATE: Increase all CS instructor salaries by 50%
+UPDATE instructors
+SET salary = salary * 1.50
+WHERE department_id = (SELECT department_id FROM departments WHERE department_name = 'Computer Science');
+
+#Verify:
+SELECT first_name, last_name, salary
+FROM instructors
+WHERE department_id = (SELECT department_id FROM departments WHERE department_name = 'Computer Science');
+
+
+#UPDATE: Mark an enrollment as Dropped
+UPDATE enrollments
+SET status = 'Dropped'
+WHERE student_id = (SELECT student_id FROM students WHERE email = 'kwame.a@student.edu')
+AND course_id  = (SELECT course_id  FROM courses  WHERE course_code = 'ENG101');
+
+#Verify:
+SELECT e.enrollment_id, s.first_name, c.course_code, e.status
+FROM enrollments e
+JOIN students s ON e.student_id = s.student_id
+JOIN courses  c ON e.course_id  = c.course_id
+WHERE s.email = 'kwame.a@student.edu';
+
+
+
+
+
+
+
+
+
+
+
+
+
