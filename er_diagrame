@@ -1,0 +1,83 @@
+
++----------------------+
+|     DEPARTMENTS      |
++----------------------+
+| PK department_id     |
+| department_name      |
+| building             |
+| established_year     |
++----------------------+
+        |1
+        |
+        |<----------------------+
+        |                       |
+       M|                      M|
++------------------+    +------------------+
+|    STUDENTS      |    |   INSTRUCTORS    |
++------------------+    +------------------+
+| PK student_id    |    | PK instructor_id |
+| first_name       |    | first_name       |
+| last_name        |    | last_name        |
+| email            |    | email            |
+| date_of_birth    |    | hire_date        |
+| enrollment_date  |    | salary           |
+| gender           |    | FK department_id |
+| gpa              |    +------------------+
+| FK department_id |              |
++------------------+              |
+        |                         |
+        |                         |1
+        |                         |
+        |                        M
+        |                +----------------------+
+        |                |      COURSES         |
+        |                +----------------------+
+        |                | PK course_id         |
+        |                | course_code          |
+        |                | course_name          |
+        |                | credits              |
+        |                | max_capacity         |
+        |                | description          |
+        |                | FK department_id     |
+        |                | FK instructor_id     |
+        |                +----------------------+
+        |                           |
+        |                           |1
+        |                           |
+        |                          M
+        |                +----------------------+
+        |                |    ENROLLMENTS       |
+        |                +----------------------+
+        |                | PK enrollment_id     |
+        +--------------->| FK student_id        |
+                         | FK course_id         |
+                         | enrollment_date      |
+                         | status               |
+                         +----------------------+
+                                   |
+                                   |1
+                                   |
+                                   |1
+                         +----------------------+
+                         |       GRADES         |
+                         +----------------------+
+                         | PK grade_id          |
+                         | FK enrollment_id     |
+                         | letter_grade         |
+                         | numeric_grade        |
+                         | graded_date          |
+                         | remarks              |
+                         +----------------------+
+
+
+
+
+| Parent Entity | Child Entity | Relationship | Foreign Key                     |
+| ------------- | ------------ | ------------ | ------------------------------- |
+| Departments   | Students     | 1 : Many     | `students.department_id`        |
+| Departments   | Instructors  | 1 : Many     | `instructors.department_id`     |
+| Departments   | Courses      | 1 : Many     | `courses.department_id`         |
+| Instructors   | Courses      | 1 : Many     | `courses.instructor_id`         |
+| Students      | Enrollments  | 1 : Many     | `enrollments.student_id`        |
+| Courses       | Enrollments  | 1 : Many     | `enrollments.course_id`         |
+| Enrollments   | Grades       | 1 : 1        | `grades.enrollment_id` (UNIQUE) |
